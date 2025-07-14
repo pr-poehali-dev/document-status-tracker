@@ -4,9 +4,20 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Icon from "@/components/ui/icon";
+import { useState } from "react";
 
 const Index = () => {
+  const [selectedDocument, setSelectedDocument] = useState<any>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [isUploadDialogOpen, setIsUploadDialogOpen] = useState(false);
+
   const documentStats = [
     { label: "Всего документов", value: 1247, icon: "FileText", color: "bg-blue-500" },
     { label: "На рассмотрении", value: 23, icon: "Clock", color: "bg-yellow-500" },
@@ -15,10 +26,73 @@ const Index = () => {
   ];
 
   const recentDocuments = [
-    { id: "DOC-001", title: "Техническое задание ПТО", status: "На рассмотрении", user: "Иванов И.И.", date: "14.07.2025" },
-    { id: "DOC-002", title: "Протокол технадзора", status: "Утверждено", user: "Петров П.П.", date: "13.07.2025" },
-    { id: "DOC-003", title: "Акт СДО", status: "Отклонено", user: "Сидоров С.С.", date: "12.07.2025" },
-    { id: "DOC-004", title: "Инструкция по безопасности", status: "Утверждено", user: "Козлов К.К.", date: "11.07.2025" },
+    { 
+      id: "DOC-001", 
+      title: "Техническое задание ПТО", 
+      status: "На рассмотрении", 
+      user: "Иванов И.И.", 
+      date: "14.07.2025", 
+      time: "14:30",
+      fileType: "PDF",
+      fileSize: "2.4 MB",
+      version: "1.2",
+      category: "ПТО",
+      history: [
+        { action: "Создан", user: "Иванов И.И.", date: "14.07.2025", time: "10:15", status: "Черновик" },
+        { action: "Отправлен на рассмотрение", user: "Иванов И.И.", date: "14.07.2025", time: "14:30", status: "На рассмотрении" }
+      ]
+    },
+    { 
+      id: "DOC-002", 
+      title: "Протокол технадзора", 
+      status: "Утверждено", 
+      user: "Петров П.П.", 
+      date: "13.07.2025", 
+      time: "16:45",
+      fileType: "DOCX",
+      fileSize: "1.8 MB",
+      version: "2.0",
+      category: "Технадзор",
+      history: [
+        { action: "Создан", user: "Петров П.П.", date: "12.07.2025", time: "09:00", status: "Черновик" },
+        { action: "Отправлен на рассмотрение", user: "Петров П.П.", date: "12.07.2025", time: "17:30", status: "На рассмотрении" },
+        { action: "Утвержден", user: "Козлов К.К.", date: "13.07.2025", time: "16:45", status: "Утверждено" }
+      ]
+    },
+    { 
+      id: "DOC-003", 
+      title: "Акт СДО", 
+      status: "Отклонено", 
+      user: "Сидоров С.С.", 
+      date: "12.07.2025", 
+      time: "11:20",
+      fileType: "PDF",
+      fileSize: "3.1 MB",
+      version: "1.0",
+      category: "СДО",
+      history: [
+        { action: "Создан", user: "Сидоров С.С.", date: "11.07.2025", time: "14:00", status: "Черновик" },
+        { action: "Отправлен на рассмотрение", user: "Сидоров С.С.", date: "11.07.2025", time: "18:00", status: "На рассмотрении" },
+        { action: "Отклонен", user: "Иванов И.И.", date: "12.07.2025", time: "11:20", status: "Отклонено", comment: "Не соответствует требованиям" }
+      ]
+    },
+    { 
+      id: "DOC-004", 
+      title: "Инструкция по безопасности", 
+      status: "Утверждено", 
+      user: "Козлов К.К.", 
+      date: "11.07.2025", 
+      time: "09:15",
+      fileType: "DOCX",
+      fileSize: "856 KB",
+      version: "3.1",
+      category: "Информация",
+      history: [
+        { action: "Создан", user: "Козлов К.К.", date: "10.07.2025", time: "10:30", status: "Черновик" },
+        { action: "Отправлен на рассмотрение", user: "Козлов К.К.", date: "10.07.2025", time: "16:45", status: "На рассмотрении" },
+        { action: "Утвержден", user: "Петров П.П.", date: "11.07.2025", time: "09:15", status: "Утверждено" }
+      ]
+    },
   ];
 
   const getStatusColor = (status: string) => {
@@ -26,9 +100,29 @@ const Index = () => {
       case "На рассмотрении": return "bg-yellow-100 text-yellow-800";
       case "Утверждено": return "bg-green-100 text-green-800";
       case "Отклонено": return "bg-red-100 text-red-800";
+      case "Черновик": return "bg-gray-100 text-gray-800";
       default: return "bg-gray-100 text-gray-800";
     }
   };
+
+  const getFileIcon = (fileType: string) => {
+    switch (fileType) {
+      case "PDF": return "FileText";
+      case "DOCX": return "FileText";
+      case "XLSX": return "FileSpreadsheet";
+      case "PNG":
+      case "JPG":
+      case "JPEG": return "Image";
+      default: return "File";
+    }
+  };
+
+  const filteredDocuments = recentDocuments.filter(doc => {
+    const matchesSearch = doc.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                         doc.id.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === "all" || doc.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -90,6 +184,41 @@ const Index = () => {
           ))}
         </div>
 
+        {/* Search and Filters */}
+        <div className="mb-6">
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex-1">
+                  <div className="relative">
+                    <Icon name="Search" className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Input 
+                      placeholder="Поиск по названию или ID документа..."
+                      className="pl-10"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                  </div>
+                </div>
+                <div className="w-full sm:w-48">
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Статус" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Все статусы</SelectItem>
+                      <SelectItem value="Черновик">Черновик</SelectItem>
+                      <SelectItem value="На рассмотрении">На рассмотрении</SelectItem>
+                      <SelectItem value="Утверждено">Утверждено</SelectItem>
+                      <SelectItem value="Отклонено">Отклонено</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
         {/* Main Dashboard */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Recent Documents */}
@@ -105,25 +234,63 @@ const Index = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>ID</TableHead>
-                      <TableHead>Название</TableHead>
+                      <TableHead>Документ</TableHead>
+                      <TableHead>Тип</TableHead>
                       <TableHead>Статус</TableHead>
-                      <TableHead>Пользователь</TableHead>
-                      <TableHead>Дата</TableHead>
+                      <TableHead>Последнее изменение</TableHead>
+                      <TableHead>Действия</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {recentDocuments.map((doc) => (
-                      <TableRow key={doc.id}>
-                        <TableCell className="font-medium">{doc.id}</TableCell>
-                        <TableCell>{doc.title}</TableCell>
+                    {filteredDocuments.map((doc) => (
+                      <TableRow key={doc.id} className="hover:bg-gray-50">
+                        <TableCell>
+                          <div className="flex items-center space-x-3">
+                            <div className="flex-shrink-0">
+                              <Icon name={getFileIcon(doc.fileType)} className="w-8 h-8 text-blue-600" />
+                            </div>
+                            <div>
+                              <div className="font-medium text-gray-900">{doc.title}</div>
+                              <div className="text-sm text-gray-500">{doc.id} • {doc.fileSize} • v{doc.version}</div>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline">{doc.fileType}</Badge>
+                        </TableCell>
                         <TableCell>
                           <Badge variant="secondary" className={getStatusColor(doc.status)}>
                             {doc.status}
                           </Badge>
                         </TableCell>
-                        <TableCell>{doc.user}</TableCell>
-                        <TableCell>{doc.date}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-2">
+                            <Avatar className="h-6 w-6">
+                              <AvatarFallback className="text-xs">{doc.user.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <div className="text-sm font-medium">{doc.user}</div>
+                              <div className="text-xs text-gray-500">{doc.date} {doc.time}</div>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex space-x-2">
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => setSelectedDocument(doc)}
+                            >
+                              <Icon name="Eye" className="w-4 h-4" />
+                            </Button>
+                            <Button variant="ghost" size="sm">
+                              <Icon name="Download" className="w-4 h-4" />
+                            </Button>
+                            <Button variant="ghost" size="sm">
+                              <Icon name="MoreHorizontal" className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -142,10 +309,53 @@ const Index = () => {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                <Button className="w-full" variant="default">
-                  <Icon name="Upload" className="w-4 h-4 mr-2" />
-                  Загрузить документ
-                </Button>
+                <Dialog open={isUploadDialogOpen} onOpenChange={setIsUploadDialogOpen}>
+                  <DialogTrigger asChild>
+                    <Button className="w-full" variant="default">
+                      <Icon name="Upload" className="w-4 h-4 mr-2" />
+                      Загрузить документ
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-[525px]">
+                    <DialogHeader>
+                      <DialogTitle>Загрузить новый документ</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="text-sm font-medium mb-2 block">Название документа</label>
+                        <Input placeholder="Введите название..." />
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium mb-2 block">Категория</label>
+                        <Select>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Выберите категорию" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="sdo">СДО</SelectItem>
+                            <SelectItem value="pto">ПТО</SelectItem>
+                            <SelectItem value="tech">Технадзор</SelectItem>
+                            <SelectItem value="info">Информация</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <label className="text-sm font-medium mb-2 block">Описание</label>
+                        <Textarea placeholder="Краткое описание документа..." />
+                      </div>
+                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                        <Icon name="Upload" className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+                        <p className="text-sm text-gray-600 mb-2">Перетащите файл сюда или нажмите для выбора</p>
+                        <p className="text-xs text-gray-500">Поддерживаются: PDF, DOC, DOCX, XLS, XLSX, PNG, JPG</p>
+                        <Button variant="outline" className="mt-2">Выбрать файл</Button>
+                      </div>
+                      <div className="flex justify-end space-x-2">
+                        <Button variant="outline" onClick={() => setIsUploadDialogOpen(false)}>Отмена</Button>
+                        <Button onClick={() => setIsUploadDialogOpen(false)}>Загрузить</Button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
                 <Button className="w-full" variant="outline">
                   <Icon name="Search" className="w-4 h-4 mr-2" />
                   Найти документ
@@ -286,6 +496,113 @@ const Index = () => {
             </Tabs>
           </CardContent>
         </Card>
+
+        {/* Document Details Modal */}
+        {selectedDocument && (
+          <Dialog open={!!selectedDocument} onOpenChange={() => setSelectedDocument(null)}>
+            <DialogContent className="sm:max-w-[700px] max-h-[80vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle className="flex items-center space-x-2">
+                  <Icon name={getFileIcon(selectedDocument.fileType)} className="w-6 h-6" />
+                  <span>{selectedDocument.title}</span>
+                </DialogTitle>
+              </DialogHeader>
+              <div className="space-y-6">
+                {/* Document Info */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">ID документа</label>
+                    <p className="text-sm font-medium">{selectedDocument.id}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Версия</label>
+                    <p className="text-sm font-medium">{selectedDocument.version}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Тип файла</label>
+                    <p className="text-sm font-medium">{selectedDocument.fileType}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Размер</label>
+                    <p className="text-sm font-medium">{selectedDocument.fileSize}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Категория</label>
+                    <p className="text-sm font-medium">{selectedDocument.category}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-gray-500">Текущий статус</label>
+                    <Badge variant="secondary" className={getStatusColor(selectedDocument.status)}>
+                      {selectedDocument.status}
+                    </Badge>
+                  </div>
+                </div>
+
+                {/* Status Change */}
+                <div className="border-t pt-4">
+                  <h3 className="text-lg font-medium mb-3">Изменить статус</h3>
+                  <div className="flex space-x-2">
+                    <Select>
+                      <SelectTrigger className="w-48">
+                        <SelectValue placeholder="Новый статус" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="draft">Черновик</SelectItem>
+                        <SelectItem value="review">На рассмотрении</SelectItem>
+                        <SelectItem value="approved">Утверждено</SelectItem>
+                        <SelectItem value="rejected">Отклонено</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Button>Применить</Button>
+                  </div>
+                  <Textarea placeholder="Комментарий к изменению статуса..." className="mt-2" />
+                </div>
+
+                {/* History */}
+                <div className="border-t pt-4">
+                  <h3 className="text-lg font-medium mb-3">История изменений</h3>
+                  <div className="space-y-3">
+                    {selectedDocument.history.map((item: any, index: number) => (
+                      <div key={index} className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+                        <Avatar className="h-8 w-8 flex-shrink-0">
+                          <AvatarFallback className="text-xs">{item.user.split(' ').map((n: string) => n[0]).join('')}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2 mb-1">
+                            <span className="text-sm font-medium">{item.user}</span>
+                            <span className="text-xs text-gray-500">{item.date} {item.time}</span>
+                          </div>
+                          <p className="text-sm text-gray-700">{item.action}</p>
+                          <div className="flex items-center space-x-2 mt-1">
+                            <Badge variant="outline" className={getStatusColor(item.status)}>
+                              {item.status}
+                            </Badge>
+                            {item.comment && (
+                              <span className="text-xs text-gray-600">• {item.comment}</span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="flex justify-end space-x-2 border-t pt-4">
+                  <Button variant="outline">
+                    <Icon name="Download" className="w-4 h-4 mr-2" />
+                    Скачать
+                  </Button>
+                  <Button variant="outline">
+                    <Icon name="Share" className="w-4 h-4 mr-2" />
+                    Поделиться
+                  </Button>
+                  <Button onClick={() => setSelectedDocument(null)}>Закрыть</Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
       </main>
     </div>
   );
